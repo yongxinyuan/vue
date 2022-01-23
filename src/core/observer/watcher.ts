@@ -1,45 +1,30 @@
-import Dep from "./dep";
-import { parsePath, noop } from "../util/index";
+import {
+  warn,
+  remove,
+  isObject,
+  parsePath,
+  _Set as Set,
+  handleError,
+  invokeWithErrorHandling,
+  noop,
+} from "../util/index";
+import { traverse } from "./traverse";
+import { queueWatcher } from "./scheduler";
 
-class Component {
-  _watcher?: Watcher;
-  _watchers: Watcher[];
-}
+import Dep, { pushTarget, popTarget } from "./dep";
 
-interface Options {
-  deep?: boolean;
-  user?: boolean;
-  lazy?: boolean;
-  sync?: boolean;
-  before?: () => void;
-}
+import type { SimpleSet } from "../util/index";
 
 let uid = 0;
 
 export default class Watcher {
-  vm: Component;
-  deep: boolean;
-  user: boolean;
-  lazy: boolean;
-  sync: boolean;
-  before?: () => void;
-  cb: () => void;
-  id: number;
-  active: boolean;
-  dirty: boolean;
-  deps: Dep[];
-  newDeps: Dep[];
-  depIds: Set<string>;
-  newDepIds: Set<string>;
-  expression: string;
-  getter: () => void;
-  value?: any;
+  vm: any;
 
   constructor(
-    vm: Component,
-    expOrFn: () => void | string,
-    cb: () => void,
-    options?: Options,
+    vm: any,
+    expOrfn: string | Function,
+    cb: Function,
+    options?: object,
     isRenderWatcher?: boolean
   ) {
     this.vm = vm;
@@ -48,40 +33,9 @@ export default class Watcher {
       vm._watcher = this;
     }
 
-    vm._watchers.push(this);
-
-    if (options) {
-      this.deep = !!options.deep;
-      this.user = !!options.user;
-      this.lazy = !!options.lazy;
-      this.sync = !!options.sync;
-      this.before = options.before;
-    } else {
-      this.deep = this.user = this.lazy = this.sync = false;
-    }
-
-    this.cb = cb;
-    this.id = ++uid;
-    this.active = true;
-    this.dirty = this.lazy;
-    this.deps = [];
-    this.newDeps = [];
-    this.depIds = new Set();
-    this.newDepIds = new Set();
-    this.expression = expOrFn.toString();
-
-    if (typeof expOrFn === "function") {
-      this.getter = expOrFn;
-    } else {
-      this.getter = parsePath(expOrFn);
-
-      if (!this.getter) {
-        this.getter = noop;
-      }
-    }
-
-    this.value = this.lazy ? undefined : this.get();
+    vm._watcher.psuh(this);
   }
 
-  get() {}
+  addDep(dep: Dep) {}
+  update() {}
 }

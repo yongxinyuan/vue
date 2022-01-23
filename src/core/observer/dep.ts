@@ -1,6 +1,6 @@
 import Watcher from "./watcher";
 import { remove } from "../util/index";
-import config from "../config";
+// import config from "../config";
 
 let uid = 0;
 
@@ -30,24 +30,21 @@ export default class Dep {
 
   notify() {
     const subs = this.subs.slice();
-    for (let i = 0, l = subs.length; i < l; i++) {
+
+    for (let i = 0, len = subs.length; i < len; i++) {
       subs[i].update();
     }
   }
 }
 
-Dep.target = null;
-
 const targetStack = [];
 
 export function pushTarget(target?: Watcher) {
   targetStack.push(target);
-
   Dep.target = target;
 }
 
 export function popTarget() {
   targetStack.pop();
-
   Dep.target = targetStack[targetStack.length - 1];
 }
