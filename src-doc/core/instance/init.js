@@ -94,8 +94,14 @@ export function initInternalComponent(
   }
 }
 
+// 获取构造函数的参数
+// 在 /core/global-api 中设置
+// 通过 Vue.extend() 扩展 Vue时，将超类挂载到子类的 super 属性上
 export function resolveConstructorOptions(Ctor: Class<Component>) {
+  // 读取构造函数的 options 属性
   let options = Ctor.options;
+
+  // 如果有超类，递归获取
   if (Ctor.super) {
     const superOptions = resolveConstructorOptions(Ctor.super);
     const cachedSuperOptions = Ctor.superOptions;

@@ -13,13 +13,18 @@ export function initExtend(Vue: GlobalAPI) {
   Vue.cid = 0;
   let cid = 1;
 
-  /**
-   * Class inheritance
-   */
+  // 创建 Vue 子类
   Vue.extend = function (extendOptions: Object): Function {
+    // 默认空对象
     extendOptions = extendOptions || {};
+
+    // 记录超类
     const Super = this;
+
+    // 记录超类的 cid 属性
     const SuperId = Super.cid;
+
+    // 记录构造函数缓存
     const cachedCtors = extendOptions._Ctor || (extendOptions._Ctor = {});
     if (cachedCtors[SuperId]) {
       return cachedCtors[SuperId];
