@@ -103,6 +103,10 @@ function copyAugment(target: Object, src: Object, keys: Array<string>) {
 }
 
 /**
+ * 尝试为value创建一个可观察对象实例，
+ * 如果成功，返回一个新的可观察对象，
+ * 或者如果value已经具有可观察对象，直接返回
+ *
  * Attempt to create an observer instance for a value,
  * returns the new observer if successfully observed,
  * or the existing observer if the value already has one.
@@ -153,25 +157,33 @@ export function defineReactive(
 ) {
   const dep = new Dep();
 
+  // 不能配置，返回
   const property = Object.getOwnPropertyDescriptor(obj, key);
   if (property && property.configurable === false) {
     return;
   }
 
+  // 记录原始getter和setter
   // cater for pre-defined getter/setters
   const getter = property && property.get;
   const setter = property && property.set;
+
+  // 只有两个参数，说明没有初始值
+  // 没有getter记录初始值，有setter的话，也是设置初始值
   if ((!getter || setter) && arguments.length === 2) {
     val = obj[key];
   }
 
+  // 将值转换成可观察对象
   let childOb = !shallow && observe(val);
+
   Object.defineProperty(obj, key, {
     enumerable: true,
     configurable: true,
     get: function reactiveGetter() {
       const value = getter ? getter.call(obj) : val;
       if (Dep.target) {
+        // 将这个Dep添加到当前正在执行的watcher中
         dep.depend();
         if (childOb) {
           childOb.dep.depend();
@@ -183,6 +195,7 @@ export function defineReactive(
       return value;
     },
     set: function reactiveSetter(newVal) {
+      // 原始值
       const value = getter ? getter.call(obj) : val;
       /* eslint-disable no-self-compare */
       if (newVal === value || (newVal !== newVal && value !== value)) {
@@ -194,12 +207,21 @@ export function defineReactive(
       }
       // #7981: for accessor properties without setter
       if (getter && !setter) return;
+
+      // 执行setter设置值
       if (setter) {
         setter.call(obj, newVal);
-      } else {
+      }
+      // 直接修改缓存的值
+      else {
         val = newVal;
       }
+
+      // 将新值转换成可观察对象
       childOb = !shallow && observe(newVal);
+
+      // 通知这个属性变化了
+      // 怎么知道哪些在观察这个属性？
       dep.notify();
     },
   });

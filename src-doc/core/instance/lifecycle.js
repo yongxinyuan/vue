@@ -32,6 +32,8 @@ export function setActiveInstance(vm: Component) {
 export function initLifecycle(vm: Component) {
   const options = vm.$options;
 
+  // 定位到第一个实体父类
+  // 将当前组件实例添加到父组件
   // locate first non-abstract parent
   let parent = options.parent;
   if (parent && !options.abstract) {
@@ -155,8 +157,8 @@ export function mountComponent(
       ) {
         warn(
           "You are using the runtime-only build of Vue where the template " +
-          "compiler is not available. Either pre-compile the templates into " +
-          "render functions, or use the compiler-included build.",
+            "compiler is not available. Either pre-compile the templates into " +
+            "render functions, or use the compiler-included build.",
           vm
         );
       } else {

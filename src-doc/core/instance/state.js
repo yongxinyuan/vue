@@ -36,6 +36,9 @@ const sharedPropertyDefinition = {
   set: noop,
 };
 
+// target - 对象
+// sourceKey 原始对象key
+// 代理读取的 key
 export function proxy(target: Object, sourceKey: string, key: string) {
   sharedPropertyDefinition.get = function proxyGetter() {
     return this[sourceKey][key];
@@ -92,9 +95,9 @@ function initProps(vm: Component, propsOptions: Object) {
         if (!isRoot && !isUpdatingChildComponent) {
           warn(
             `Avoid mutating a prop directly since the value will be ` +
-            `overwritten whenever the parent component re-renders. ` +
-            `Instead, use a data or computed property based on the prop's ` +
-            `value. Prop being mutated: "${key}"`,
+              `overwritten whenever the parent component re-renders. ` +
+              `Instead, use a data or computed property based on the prop's ` +
+              `value. Prop being mutated: "${key}"`,
             vm
           );
         }
@@ -113,24 +116,31 @@ function initProps(vm: Component, propsOptions: Object) {
 }
 
 function initData(vm: Component) {
+  // data 构造函数
   let data = vm.$options.data;
+
+  // data 实例
   data = vm._data = typeof data === "function" ? getData(data, vm) : data || {};
+
+  // 检查普通对象
   if (!isPlainObject(data)) {
     data = {};
     process.env.NODE_ENV !== "production" &&
       warn(
         "data functions should return an object:\n" +
-        "https://vuejs.org/v2/guide/components.html#data-Must-Be-a-Function",
+          "https://vuejs.org/v2/guide/components.html#data-Must-Be-a-Function",
         vm
       );
   }
-  // proxy data on instance
+  // 代理实例上的 data
+  // props methods 中的 key 不能重复
   const keys = Object.keys(data);
   const props = vm.$options.props;
   const methods = vm.$options.methods;
   let i = keys.length;
   while (i--) {
     const key = keys[i];
+
     if (process.env.NODE_ENV !== "production") {
       if (methods && hasOwn(methods, key)) {
         warn(
@@ -139,21 +149,26 @@ function initData(vm: Component) {
         );
       }
     }
+
     if (props && hasOwn(props, key)) {
       process.env.NODE_ENV !== "production" &&
         warn(
           `The data property "${key}" is already declared as a prop. ` +
-          `Use prop default value instead.`,
+            `Use prop default value instead.`,
           vm
         );
-    } else if (!isReserved(key)) {
+    }
+    //
+    else if (!isReserved(key)) {
       proxy(vm, `_data`, key);
     }
   }
-  // observe data
+
+  // 转换可观察对象
   observe(data, true /* asRootData */);
 }
 
+// 创建 data 实例
 export function getData(data: Function, vm: Component): any {
   // #7573 disable dep collection when invoking data getters
   pushTarget();
@@ -276,9 +291,9 @@ function initMethods(vm: Component, methods: Object) {
       if (typeof methods[key] !== "function") {
         warn(
           `Method "${key}" has type "${typeof methods[
-          key
+            key
           ]}" in the component definition. ` +
-          `Did you reference the function correctly?`,
+            `Did you reference the function correctly?`,
           vm
         );
       }
@@ -288,7 +303,7 @@ function initMethods(vm: Component, methods: Object) {
       if (key in vm && isReserved(key)) {
         warn(
           `Method "${key}" conflicts with an existing Vue instance method. ` +
-          `Avoid defining component methods that start with _ or $.`
+            `Avoid defining component methods that start with _ or $.`
         );
       }
     }
@@ -342,7 +357,7 @@ export function stateMixin(Vue: Class<Component>) {
     dataDef.set = function () {
       warn(
         "Avoid replacing instance root $data. " +
-        "Use nested data properties instead.",
+          "Use nested data properties instead.",
         this
       );
     };

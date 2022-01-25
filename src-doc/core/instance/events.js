@@ -12,6 +12,8 @@ import { updateListeners } from "../vdom/helpers/index";
 export function initEvents(vm: Component) {
   vm._events = Object.create(null);
   vm._hasHookEvent = false;
+
+  // 初始化父附加事件
   // init parent attached events
   const listeners = vm.$options._parentListeners;
   if (listeners) {
@@ -39,6 +41,9 @@ function createOnceHandler(event, fn) {
   };
 }
 
+// 更新组建监听器
+// 为什么要设置target
+// 包装
 export function updateComponentListeners(
   vm: Component,
   listeners: Object,

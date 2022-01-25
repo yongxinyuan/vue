@@ -16,12 +16,24 @@ import VNode, { createEmptyVNode } from "../vdom/vnode";
 
 import { isUpdatingChildComponent } from "./lifecycle";
 
+// 初始化渲染器
 export function initRender(vm: Component) {
+  // 子树的根节点
   vm._vnode = null; // the root of the child tree
+
+  // 单次渲染缓存树
   vm._staticTrees = null; // v-once cached trees
+
+  // 参数
   const options = vm.$options;
+
+  // 父组件树中占位节点
   const parentVnode = (vm.$vnode = options._parentVnode); // the placeholder node in parent tree
+
+  // 渲染上下文
   const renderContext = parentVnode && parentVnode.context;
+
+  
   vm.$slots = resolveSlots(options._renderChildren, renderContext);
   vm.$scopedSlots = emptyObject;
   // bind the createElement fn to this instance
