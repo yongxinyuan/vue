@@ -31,4 +31,18 @@ getter 收集依赖
 
 setter 触发通知
 
-每个 Component 在 mountComponent 的时候都创建一个 Watcher
+每个 Component 在 mountComponent 的时候都创建一个渲染 Watcher
+
+首先通过 $mount() 方法处理渲染时，才会将用到的依赖收集，
+后面修改时才会通过 Dep.notify() 获取通知，
+获取一次就要清理掉，再次获取再收集，循环处理.
+
+### 如何控制 Dep 和 Watcher 的？
+
+Dep.addSub() => Watcher.addDep() => Dep.depend()
+
+createComputedGetter()
+
+( Object / Array ).getter
+
+Watcher.depend();
