@@ -1,330 +1,341 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>observe</title>
-  </head>
-  <body>
-    <script>
-      const { ProxyPrototype, methodsToPatch } = (() => {
-        const ArrayProto = Array.prototype;
 
-        // 创建一个以 Array.prototype 为原型的新对象
-        const ProxyPrototype = Object.create(ArrayProto);
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>observe</title>
+</head>
 
-        // 代理的方法
-        const methodsToPatch = [
-          "push",
-          "pop",
-          "shift",
-          "unshift",
-          "splice",
-          "sort",
-          "reverse",
-        ];
+<body>
+  <script>
+    const { ProxyPrototype, methodsToPatch } = (() => {
+      const ArrayProto = Array.prototype;
 
-        // 拦截改变数组的方法，触发事件
-        methodsToPatch.forEach((method) => {
-          // 缓存原始方法
-          const original = ProxyPrototype[method];
+      // 创建一个以 Array.prototype 为原型的新对象
+      const ProxyPrototype = Object.create(ArrayProto);
 
-          // 改写代理原型对象
-          Object.defineProperty(ProxyPrototype, method, {
-            value: function (...args) {
-              // 通过缓存的原始方法计算结果
-              const result = original.apply(this, args);
-              // 获取对应的 Observer 实例
-              const ob = this.__ob__;
-              // ...
-              let inserted;
+      // 代理的方法
+      const methodsToPatch = [
+        "push",
+        "pop",
+        "shift",
+        "unshift",
+        "splice",
+        "sort",
+        "reverse",
+      ];
 
-              switch (method) {
-                // [1,2,3].push(4) => [1,2,3,4];
-                // [1,2,3].unshift(4) => [4,1,2,3];
-                // 所有参数都是新增的
-                case "push":
-                case "unshift":
-                  inserted = args;
-                  break;
-                // [1,2,3].splice(si, c, ...newItems)
-                // 第三个参数起是新增的
-                case "splice":
-                  inserted = args.slice(2);
-                  break;
-                default:
-              }
+      // 拦截改变数组的方法，触发事件
+      methodsToPatch.forEach((method) => {
+        // 缓存原始方法
+        const original = ProxyPrototype[method];
 
-              // 将新增元素转换成可观察对象
-              if (inserted) {
-                ob.observeArray(inserted);
-              }
+        // 改写代理原型对象
+        Object.defineProperty(ProxyPrototype, method, {
+          value: function (...args) {
+            // 通过缓存的原始方法计算结果
+            const result = original.apply(this, args);
+            // 获取对应的 Observer 实例
+            const ob = this.__ob__;
+            // ...
+            let inserted;
 
-              // 发布通知
-              ob.dep.notify();
+            switch (method) {
+              // [1,2,3].push(4) => [1,2,3,4];
+              // [1,2,3].unshift(4) => [4,1,2,3];
+              // 所有参数都是新增的
+              case "push":
+              case "unshift":
+                inserted = args;
+                break;
+              // [1,2,3].splice(si, c, ...newItems)
+              // 第三个参数起是新增的
+              case "splice":
+                inserted = args.slice(2);
+                break;
+              default:
+            }
 
-              return result;
-            },
+            // 将新增元素转换成可观察对象
+            if (inserted) {
+              ob.observeArray(inserted);
+            }
+
+            // 发布通知
+            ob.dep.notify();
+
+            return result;
+          },
+          enumerable: false,
+          writable: true,
+          configurable: true,
+        });
+      });
+
+      return { ProxyPrototype, methodsToPatch };
+    })();
+
+    const { Dep } = (() => {
+      let uid = 0;
+
+      class Dep {
+        constructor() {
+          this.id = uid++;
+          this.subs = [];
+        }
+
+        addSub(sub) {
+          this.subs.push(sub);
+        }
+
+        removeSub(sub) {
+          if (this.subs.length) {
+            const index = this.subs.indexOf(sub);
+            if (index > -1) {
+              this.subs = this.subs.splice(index, 1);
+            }
+          }
+        }
+
+        depend() {
+          if (Dep.target) {
+            Dep.target.addDep(this);
+          }
+        }
+
+        notify() {
+          const subs = this.subs.slice();
+
+          for (let i = 0, len = subs.length; i < len; i++) {
+            subs[i].update();
+          }
+        }
+      }
+
+      Dep.target = undefined;
+
+      return { Dep };
+    })();
+
+    const { Watcher } = (() => {
+      class Watcher {
+        constructor(cb) {
+          this.cb = cb;
+          this.deps = [];
+          this.depIds = new Set();
+          this.newDeps = [];
+          this.newDepIds = new Set();
+        }
+
+        get() { }
+
+        update() {
+          const oldVal = this.value;
+          const newVal = this.get();
+
+          this.value = newVal;
+
+          this.cb(newVal, oldVal);
+        }
+
+        addDep(dep) {
+          const id = dep.id;
+
+          // 添加到新依赖项
+          if (!this.newDepIds.has(id)) {
+            this.newDepIds.add(id);
+            this.newDeps.push(dep);
+
+            // 当前依赖项没有的话，将this作为观察者添加到依赖
+            if (!this.depIds.has(id)) {
+              dep.addSub(this);
+            }
+          }
+        }
+      }
+
+      return { Watcher };
+    })();
+
+    const { Observer, observe, defineReactive } = (() => {
+      class Observer {
+        constructor(value) {
+          console.log(`Observer constructor`, value);
+          // 记录原始数据
+          this.value = value;
+          // 记录依赖项
+          this.dep = new Dep();
+
+          // Observer 实例挂载到 value.__ob__ 属性上
+          // 不可枚举
+          Object.defineProperty(this.value, "__ob__", {
+            value: this,
             enumerable: false,
             writable: true,
             configurable: true,
           });
-        });
 
-        return { ProxyPrototype, methodsToPatch };
-      })();
+          console.log(`Observer __ob__`, this.value.__ob__);
 
-      const { Dep } = (() => {
-        let uid = 0;
+          // 数组和对象分别处理
+          Array.isArray(this.value)
+            ? this.observeArray(this.value)
+            : this.walk(this.value);
+        }
 
-        class Dep {
-          constructor() {
-            this.id = uid++;
-            this.subs = [];
+        // Object
+        walk(obj) {
+          const keys = Object.keys(obj);
+
+          for (let i = 0, len = keys.length; i < len; i++) {
+            defineReactive(obj, keys[i]);
           }
+        }
 
-          addSub(sub) {
-            this.subs.push(sub);
+        // Array
+        observeArray(items) {
+          // 数组的 __proto__ 原型对象替换成代理原型对象
+          items.__proto__ = ProxyPrototype;
+
+          // 处理数组所有元素
+          for (let i = 0, len = items.length; i < len; i++) {
+            observe(items[i]);
           }
+        }
+      }
 
-          removeSub(sub) {
-            if (this.subs.length) {
-              const index = this.subs.indexOf(sub);
-              if (index > -1) {
-                this.subs = this.subs.splice(index, 1);
-              }
-            }
+      // 尝试为 value 创建可观察对象
+      function observe(value) {
+        const isArray = Array.isArray(value);
+        const isObject = value !== null && typeof value === "object";
+
+        // 只处理数组和对象
+        if (!isArray && !isObject) {
+          return;
+        }
+
+        // 创建过的不处理
+        if (Object.hasOwnProperty(value, "__ob__")) {
+          return value.__ob__;
+        }
+
+        return new Observer(value);
+      }
+
+      // 拦截对象属性
+      function defineReactive(obj, key, val) {
+        // 为属性创建依赖实例
+        const dep = new Dep();
+
+        // 对象中该属性的描述信息
+        const property = Object.getOwnPropertyDescriptor(obj, key);
+
+        // 不能修改拦截
+        if (property && property.configurable === false) return;
+
+        // 缓存原始 getter 和 setter
+        const getter = property && property.get;
+        const setter = property && property.set;
+
+        // val === undefined
+        if (arguments.length === 2) {
+          if (!getter || setter) {
+            val = obj[key];
           }
+        }
 
-          depend() {
+        let childOb = observe(val);
+
+        Object.defineProperty(obj, key, {
+          enumerable: true,
+          configurable: true,
+          get: function reactiveGetter() {
+            const value = getter ? getter.call(obj) : val;
+
+            // console.log(`getter`, obj, key, value);
+
             if (Dep.target) {
-              Dep.target.addDep(this);
-            }
-          }
+              dep.depend();
 
-          notify() {
-            const subs = this.subs.slice();
+              if (childOb) {
+                childOb.dep.depend();
 
-            for (let i = 0, len = subs.length; i < len; i++) {
-              subs[i].update();
-            }
-          }
-        }
-
-        Dep.target = undefined;
-
-        return { Dep };
-      })();
-
-      const { Watcher } = (() => {
-        class Watcher {
-          constructor(cb) {
-            this.cb = cb;
-            this.deps = [];
-            this.depIds = new Set();
-            this.newDeps = [];
-            this.newDepIds = new Set();
-          }
-
-          get() {}
-
-          update() {
-            const oldVal = this.value;
-            const newVal = this.get();
-
-            this.value = newVal;
-
-            this.cb(newVal, oldVal);
-          }
-
-          addDep(dep) {
-            const id = dep.id;
-
-            // 添加到新依赖项
-            if (!this.newDepIds.has(id)) {
-              this.newDepIds.add(id);
-              this.newDeps.push(dep);
-
-              // 当前依赖项没有的话，将this作为观察者添加到依赖
-              if (!this.depIds.has(id)) {
-                dep.addSub(this);
-              }
-            }
-          }
-        }
-
-        return { Watcher };
-      })();
-
-      const { Observer, observe, defineReactive } = (() => {
-        class Observer {
-          constructor(value) {
-            console.log(`Observer constructor`, value);
-            // 记录原始数据
-            this.value = value;
-            // 记录依赖项
-            this.dep = new Dep();
-
-            // Observer 实例挂载到 value.__ob__ 属性上
-            // 不可枚举
-            Object.defineProperty(this.value, "__ob__", {
-              value: this.value,
-              enumerable: false,
-              writable: true,
-              configurable: true,
-            });
-
-            console.log(`Observer __ob__`, this.value.__ob__);
-
-            // 数组和对象分别处理
-            Array.isArray(this.value)
-              ? this.observeArray(this.value)
-              : this.walk(this.value);
-          }
-
-          // Object
-          walk(obj) {
-            const keys = Object.keys(obj);
-
-            for (let i = 0, len = keys.length; i < len; i++) {
-              defineReactive(obj, keys[i]);
-            }
-          }
-
-          // Array
-          observeArray(items) {
-            // 数组的 __proto__ 原型对象替换成代理原型对象
-            items.__proto__ = ProxyPrototype;
-
-            // 处理数组所有元素
-            for (let i = 0, len = items.length; i < len; i++) {
-              observe(items[i]);
-            }
-          }
-        }
-
-        // 尝试为 value 创建可观察对象
-        function observe(value) {
-          const isArray = Array.isArray(value);
-          const isObject = value !== null && typeof value === "object";
-
-          // 只处理数组和对象
-          if (!isArray && !isObject) {
-            return;
-          }
-
-          // 创建过的不处理
-          if (Object.hasOwnProperty(value, "__ob__")) {
-            return value.__ob__;
-          }
-
-          return new Observer(value);
-        }
-
-        // 拦截对象属性
-        function defineReactive(obj, key, val) {
-          // 为属性创建依赖实例
-          const dep = new Dep();
-
-          // 对象中该属性的描述信息
-          const property = Object.getOwnPropertyDescriptor(obj, key);
-
-          // 不能修改拦截
-          if (property && property.configurable === false) return;
-
-          // 缓存原始 getter 和 setter
-          const getter = property && property.get;
-          const setter = property && property.set;
-
-          // val === undefined
-          if (arguments.length === 2) {
-            if (!getter || setter) {
-              val = obj[key];
-            }
-          }
-
-          let childOb = observe(val);
-
-          Object.defineProperty(obj, key, {
-            enumerable: true,
-            configurable: true,
-            get: function reactiveGetter() {
-              debugger;
-              const value = getter ? getter.call(obj) : val;
-
-              // console.log(`getter`, obj, key, value);
-
-              if (Dep.target) {
-                dep.depend();
-
-                if (childOb) {
-                  childOb.dep.depend();
-
-                  if (Array.isArray(value)) {
-                    dependArray(value);
-                  }
+                if (Array.isArray(value)) {
+                  dependArray(value);
                 }
               }
-
-              return value;
-            },
-            set: function reactiveSetter(newVal) {
-              debugger;
-              // 原始值
-              const value = getter ? getter.call(obj) : val;
-
-              if (newVal === value || (newVal !== newVal && value !== value)) {
-                return;
-              }
-
-              // readonly
-              if (getter && !setter) return;
-
-              if (setter) {
-                setter.call(obj, newVal);
-              } else {
-                val = newVal;
-              }
-
-              childOb = observe(newVal);
-
-              dep.notify();
-            },
-          });
-        }
-
-        function dependArray(value) {
-          for (let i = 0, len = value.length; i < len; i++) {
-            const e = value[i];
-
-            if (e && e.__ob__) {
-              e.__ob__.dep.depend();
             }
 
-            if (Array.isArray(e)) {
-              dependArray(e);
+            return value;
+          },
+          set: function reactiveSetter(newVal) {
+            // 原始值
+            const value = getter ? getter.call(obj) : val;
+
+            if (newVal === value || (newVal !== newVal && value !== value)) {
+              return;
             }
+
+            // readonly
+            if (getter && !setter) return;
+
+            if (setter) {
+              setter.call(obj, newVal);
+            } else {
+              val = newVal;
+            }
+
+            childOb = observe(newVal);
+
+            dep.notify();
+          },
+        });
+      }
+
+      function dependArray(value) {
+        for (let i = 0, len = value.length; i < len; i++) {
+          const e = value[i];
+
+          if (e && e.__ob__) {
+            e.__ob__.dep.depend();
+          }
+
+          if (Array.isArray(e)) {
+            dependArray(e);
           }
         }
+      }
 
-        return { Observer, observe, defineReactive };
-      })();
+      return { Observer, observe, defineReactive };
+    })();
 
-      // ...
-      const w = new Watcher((newVal, oldVal) => {
-        console.log("do something here.");
-      });
+    // ...
+    const w = new Watcher((newVal, oldVal) => {
+      console.log("do something here.");
+    });
 
-      Dep.target = w;
+    Dep.target = w;
 
-      const data = {
-        username: "David",
-      };
+    const data = {
+      username: "David",
+      todos: [
+        {
+          id: 1,
+          value: 1
+        },
+        {
+          id: 2,
+          value: 2
+        }
+      ]
+    };
 
-      observe(data);
+    observe(data);
 
-      console.log(data);
-    </script>
-  </body>
+    console.log(data);
+  </script>
+</body>
+
 </html>
