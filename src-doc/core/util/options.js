@@ -33,7 +33,7 @@ if (process.env.NODE_ENV !== "production") {
     if (!vm) {
       warn(
         `option "${key}" can only be used during instance ` +
-          "creation with the `new` keyword."
+        "creation with the `new` keyword."
       );
     }
     return defaultStrat(parent, child);
@@ -121,8 +121,8 @@ strats.data = function (
       process.env.NODE_ENV !== "production" &&
         warn(
           'The "data" option should be a function ' +
-            "that returns a per-instance value in component " +
-            "definitions.",
+          "that returns a per-instance value in component " +
+          "definitions.",
           vm
         );
 
@@ -145,8 +145,8 @@ function mergeHook(
     ? parentVal
       ? parentVal.concat(childVal)
       : Array.isArray(childVal)
-      ? childVal
-      : [childVal]
+        ? childVal
+        : [childVal]
     : parentVal;
   return res ? dedupeHooks(res) : res;
 }
@@ -224,8 +224,8 @@ strats.watch = function (
     ret[key] = parent
       ? parent.concat(child)
       : Array.isArray(child)
-      ? child
-      : [child];
+        ? child
+        : [child];
   }
   return ret;
 };
@@ -237,21 +237,21 @@ strats.props =
   strats.methods =
   strats.inject =
   strats.computed =
-    function (
-      parentVal: ?Object,
-      childVal: ?Object,
-      vm?: Component,
-      key: string
-    ): ?Object {
-      if (childVal && process.env.NODE_ENV !== "production") {
-        assertObjectType(key, childVal, vm);
-      }
-      if (!parentVal) return childVal;
-      const ret = Object.create(null);
-      extend(ret, parentVal);
-      if (childVal) extend(ret, childVal);
-      return ret;
-    };
+  function (
+    parentVal: ?Object,
+    childVal: ?Object,
+    vm?: Component,
+    key: string
+  ): ?Object {
+    if (childVal && process.env.NODE_ENV !== "production") {
+      assertObjectType(key, childVal, vm);
+    }
+    if (!parentVal) return childVal;
+    const ret = Object.create(null);
+    extend(ret, parentVal);
+    if (childVal) extend(ret, childVal);
+    return ret;
+  };
 strats.provide = mergeDataOrFn;
 
 /**
@@ -276,16 +276,16 @@ export function validateComponentName(name: string) {
   ) {
     warn(
       'Invalid component name: "' +
-        name +
-        '". Component names ' +
-        "should conform to valid custom element name in html5 specification."
+      name +
+      '". Component names ' +
+      "should conform to valid custom element name in html5 specification."
     );
   }
   if (isBuiltInTag(name) || config.isReservedTag(name)) {
     warn(
       "Do not use built-in or reserved HTML elements as component " +
-        "id: " +
-        name
+      "id: " +
+      name
     );
   }
 }
@@ -319,7 +319,7 @@ function normalizeProps(options: Object, vm: ?Component) {
   } else if (process.env.NODE_ENV !== "production") {
     warn(
       `Invalid value for option "props": expected an Array or an Object, ` +
-        `but got ${toRawType(props)}.`,
+      `but got ${toRawType(props)}.`,
       vm
     );
   }
@@ -347,7 +347,7 @@ function normalizeInject(options: Object, vm: ?Component) {
   } else if (process.env.NODE_ENV !== "production") {
     warn(
       `Invalid value for option "inject": expected an Array or an Object, ` +
-        `but got ${toRawType(inject)}.`,
+      `but got ${toRawType(inject)}.`,
       vm
     );
   }
@@ -372,7 +372,7 @@ function assertObjectType(name: string, value: any, vm: ?Component) {
   if (!isPlainObject(value)) {
     warn(
       `Invalid value for option "${name}": expected an Object, ` +
-        `but got ${toRawType(value)}.`,
+      `but got ${toRawType(value)}.`,
       vm
     );
   }
