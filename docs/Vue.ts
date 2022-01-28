@@ -1,41 +1,35 @@
+interface Component {}
+
 class Vue {
-  /**
-   * @link /src/core/instance/index.js
-   */
-  constructor() {}
+  // @link src/core/instance/index.js
+  constructor(options: object) {}
 
-  /**
-   * @link /src/core/instance/init.js
-   */
-  _init() {}
+  // @link src/core/instance/init.js
+  _init(options: object): void {}
 
-  /**
-   * @link /src/core/instance/state.js
-   */
-  $data() {}
-  $props() {}
+  // @link src/core/instance/state.js
+  get $data(): object {
+    return {};
+  }
+  get $props(): object {
+    return {};
+  }
   $set() {}
   $delete() {}
   $watch() {}
 
-  /**
-   * @link /src/core/instance/events.js
-   */
+  // @link src/core/instance/events.js
   $on() {}
   $once() {}
   $off() {}
   $emit() {}
 
-  /**
-   * @link /src/core/instance/lifecycle.js
-   */
+  // @link src/core/instance/lifecycle.js
   _update() {}
   $forceUpdate() {}
   $destroy() {}
 
-  /**
-   * @link /src/core/instance/render-helpers/index.js
-   */
+  // @link src/core/instance/render-helpers/index.js
   _o() {}
   _n() {}
   _s() {}
@@ -53,22 +47,25 @@ class Vue {
   _g() {}
   _d() {}
   _p() {}
-
-  /**
-   * @link /src/core/instance/render.js
-   */
   $nextTick() {}
   _render() {}
 
-  /**
-   * @link /src/core/global-api/index.js
-   */
-  static config() {}
+  // @link src/core/global-api/index.js
+  static get config() {
+    return {
+      // @link src/platforms/web/runtime/index.js
+      mustUseProp() {},
+      isReservedTag() {},
+      isReservedAttr() {},
+      getTagNamespace() {},
+      isUnknownElement() {},
+    };
+  }
   static util = {
-    warn() {},
-    extend() {},
-    mergeOptions() {},
-    defineReactive() {},
+    warn: function () {},
+    extend: function () {},
+    mergeOptions: function () {},
+    defineReactive: function () {},
   };
   static set() {}
   static delete() {}
@@ -76,39 +73,40 @@ class Vue {
   static observable() {}
   static options = {
     _base: Vue,
+    components: {
+      KeepAlive: {},
+      // @link src/platforms/web/runtime/index.js
+      Transition: {},
+      TransitionGroup: {},
+    },
+    // @link src/platforms/web/runtime/index.js
+    directives: {
+      model: {},
+      show: {},
+    },
   };
-  static components() {}
-  static directives() {}
-  static filters() {}
-
-  /**
-   * @link /src/core/global-api/use.js
-   */
+  static components = {};
+  static directives = {};
+  static filters = {};
   static use() {}
-
-  /**
-   * @link /src/core/global-api/mixin.js
-   */
   static mixin() {}
+  static cid = 0;
+  static extend() {}
+  static component() {}
+  static directive() {}
+  static filter() {}
 
-  /**
-   * @link /src/core/global-api/extend.js
-   */
-  static cid: number;
-  static extend: () => {};
+  // @link src/core/index.js
+  get $isServer() {
+    return false;
+  }
+  get $ssrContext() {
+    return;
+  }
+  static FunctionalRenderContext() {}
+  static version = "";
 
-  /**
-   * @link /src/core/global-api/assets.js
-   */
-  component: () => {};
-  directive: () => {};
-  filter: () => {};
-
-  /**
-   * @link /vue/src/core/index.js
-   */
-  $isServer: boolean;
-  $ssrContext: boolean;
-  static FunctionalRenderContext: () => {};
-  static version: string;
+  // @link src/platforms/web/runtime/index.js
+  __patch__() {}
+  $mount() {}
 }

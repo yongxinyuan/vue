@@ -5,123 +5,112 @@
 ```
 class Vue {
   // @link src/core/instance/index.js
-  constructor(options) {}
+  constructor(options: object) {}
 
   // @link src/core/instance/init.js
-  _init(): void;
+  _init(options: object): void {}
 
   // @link src/core/instance/state.js
-  get $data(): object;
-  get $props(): object;
-  $set(target: any[] | object, key: any, val: any): any;
-  $delete(target: any[] | object, key: any): void;
-  $watch(expOrFn: string | Function, cb: any, options?: object): () => void;
+  get $data(): object {
+    return {};
+  }
+  get $props(): object {
+    return {};
+  }
+  $set() {}
+  $delete() {}
+  $watch() {}
 
   // @link src/core/instance/events.js
-  $on(event: string | string[], fn: Function): Component;
-  $once(event: string, fn: Function): Component;
-  $off(event?: string, fn?: Function): Component;
-  $emit(event: string, ...args: any[]): Component;
+  $on() {}
+  $once() {}
+  $off() {}
+  $emit() {}
 
   // @link src/core/instance/lifecycle.js
-  _update(vnode: VNode, hydrating?: boolean): void;
-  $forceUpdate(): void;
-  $destroy(): void;
+  _update() {}
+  $forceUpdate() {}
+  $destroy() {}
 
   // @link src/core/instance/render-helpers/index.js
-  _o(tree: VNode | VNode[], index: number, key: string): VNode;
-  _n(val: string): number | string;
-  _s(val: any): string;
-  _l(
-    val: any,
-    render: (val: any, keyOrIndex: string | number, index?: number) => VNode
-  ): VNode[] | undefined;
-  _t(
-    name: string,
-    fallbackRender?: (() => VNode[]) | VNode[],
-    props?: object,
-    bindObject?: object
-  ): VNode[] | undefined;
-  _q(a: any, b: any): boolean;
-  _i(arr: any[], val: any): number;
-  _m(index: number, isInFor: boolean): VNode[] | VNode;
-  _f(id: string): Function;
-  _k(
-    eventKeyCode: number,
-    key: string,
-    buildInKeyCode?: number | number[],
-    eventKeyName?: string,
-    buildInKeyName?: string | string[]
-  ): boolean | undefined;
-  _b(
-    data: any,
-    tag: string,
-    value: any,
-    asProp: boolean,
-    isSync?: boolean
-  ): VNodeData;
-  _v(val: string | number): VNode;
-  _e(text: string): VNode;
-  _u(
-    fns: ScopedSlotsData,
-    res?: object,
-    hasDynamicKeys?: boolean,
-    contentHashKey?: number
-  ): {
-    [key: string]: Function,
-    $stable: boolean
-  };
-  _g(data: any, value: any): VNodeData;
-  _d(baseObj: object, values: any[]): object;
-  _p(value: any, symbol: string): any;
-
-  // @link src/core/instance/render.js
-  $nextTick(fn: Function): Promise;
-  _render(): VNode;
+  _o() {}
+  _n() {}
+  _s() {}
+  _l() {}
+  _t() {}
+  _q() {}
+  _i() {}
+  _m() {}
+  _f() {}
+  _k() {}
+  _b() {}
+  _v() {}
+  _e() {}
+  _u() {}
+  _g() {}
+  _d() {}
+  _p() {}
+  $nextTick() {}
+  _render() {}
 
   // @link src/core/global-api/index.js
-  get config(): object;
+  static get config() {
+    return {
+      // @link src/platforms/web/runtime/index.js
+      mustUseProp() {},
+      isReservedTag() {},
+      isReservedAttr() {},
+      getTagNamespace() {},
+      isUnknownElement() {},
+    };
+  }
   static util = {
-    warn: () => void,
-    extend: () => void,
-    mergeOptions: () => void,
-    defineReactive: () => void
+    warn: function () {},
+    extend: function () {},
+    mergeOptions: function () {},
+    defineReactive: function () {},
+  };
+  static set() {}
+  static delete() {}
+  static nextTick() {}
+  static observable() {}
+  static options = {
+    _base: Vue,
+    components: {
+      KeepAlive: {},
+      // @link src/platforms/web/runtime/index.js
+      Transition: {},
+      TransitionGroup: {},
+    },
+    // @link src/platforms/web/runtime/index.js
+    directives: {
+      model: {},
+      show: {},
+    },
+  };
+  static components = {};
+  static directives = {};
+  static filters = {};
+  static use() {}
+  static mixin() {}
+  static cid = 0;
+  static extend() {}
+  static component() {}
+  static directive() {}
+  static filter() {}
+
+  // @link src/core/index.js
+  get $isServer() {
+    return false;
   }
-  static set(): void;
-  static delete(): void;
-  static nextTick(): void;
-  static observable(): void;
-  static options: {
-    components: object,
-    directives: object,
-    filters: object,
-    _base: Vue
+  get $ssrContext() {
+    return;
   }
-  static use(): void;
-  static mixin(): void;
-  static cid: number;
-  static extend(): void;
-  static component(): void;
-  static directive(): void;
-  static filter(): void;
-  get $isServer(): void;
-  get $ssrContext(): void;
-  static FunctionalRenderContext(): void;
-  static version: string;
+  static FunctionalRenderContext() {}
+  static version = "";
 
   // @link src/platforms/web/runtime/index.js
-  static config = {
-    mustUseProp: (tag: string, type?: string, attr?: string) => boolean,
-    isReservedTag: (tag: string) => boolean | undefined,
-    isReservedAttr: { [key: string]: boolean },
-    getTagNamespace: (tag: string) => string | undefined,
-    isUnknownElement: (tag: string) => boolean
-  }
-  static options = {
-    directives: {},
-    components: {}
-  }
-  __patch__(): void;
-  $mount(): void;
+  __patch__() {}
+  $mount() {}
 }
 ```
