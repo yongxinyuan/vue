@@ -18,13 +18,13 @@ export function initExtend(Vue: GlobalAPI) {
     // 默认空对象
     extendOptions = extendOptions || {};
 
-    // 记录超类
+    // 记录父类，调用哪个构造函数上的extend方法，this就指向哪个构造函数
     const Super = this;
 
     // 记录超类的 cid 属性
     const SuperId = Super.cid;
 
-    // 记录构造函数缓存
+    // 通过超类的cid就超类
     const cachedCtors = extendOptions._Ctor || (extendOptions._Ctor = {});
     if (cachedCtors[SuperId]) {
       return cachedCtors[SuperId];

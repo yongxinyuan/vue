@@ -111,9 +111,13 @@ export function resolveConstructorOptions(Ctor: Class<Component>) {
 
   // 如果有超类，递归获取
   if (Ctor.super) {
+    // 获取父类上挂载的options属性
     const superOptions = resolveConstructorOptions(Ctor.super);
+    // 构造函数上缓存的父类options
     const cachedSuperOptions = Ctor.superOptions;
+    // 如果发生变化
     if (superOptions !== cachedSuperOptions) {
+      // 将构造函数上缓存的父类options替换成最新的
       // super option changed,
       // need to resolve new options.
       Ctor.superOptions = superOptions;
@@ -124,6 +128,7 @@ export function resolveConstructorOptions(Ctor: Class<Component>) {
         extend(Ctor.extendOptions, modifiedOptions);
       }
       options = Ctor.options = mergeOptions(superOptions, Ctor.extendOptions);
+
       if (options.name) {
         options.components[options.name] = Ctor;
       }
