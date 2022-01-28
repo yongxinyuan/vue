@@ -291,32 +291,49 @@ export function validateComponentName(name: string) {
 }
 
 /**
+ * 确保所有的 props 配置都是标准的基于对象的格式
  * Ensure all props option syntax are normalized into the
  * Object-based format.
  */
 function normalizeProps(options: Object, vm: ?Component) {
+  // 配置的 props
   const props = options.props;
+
+  // 没有 props 不处理
   if (!props) return;
+
+  // 标准的 props 对象
   const res = {};
+
   let i, val, name;
+
+  // 数组
+  // 元素必须是字符串
+  // [ a, b ] => { a: { type: null }, b: { type: null } }
   if (Array.isArray(props)) {
     i = props.length;
     while (i--) {
       val = props[i];
       if (typeof val === "string") {
+        // 驼峰
         name = camelize(val);
         res[name] = { type: null };
       } else if (process.env.NODE_ENV !== "production") {
         warn("props must be strings when using array syntax.");
       }
     }
-  } else if (isPlainObject(props)) {
+  }
+  // 普通对象
+  // { a: { type: Number }, b: Number } => { a: { type: Number }, b: { type: Number } }
+  else if (isPlainObject(props)) {
     for (const key in props) {
       val = props[key];
       name = camelize(key);
       res[name] = isPlainObject(val) ? val : { type: val };
     }
-  } else if (process.env.NODE_ENV !== "production") {
+  }
+  // 其他
+  else if (process.env.NODE_ENV !== "production") {
     warn(
       `Invalid value for option "props": expected an Array or an Object, ` +
       `but got ${toRawType(props)}.`,
@@ -327,24 +344,36 @@ function normalizeProps(options: Object, vm: ?Component) {
 }
 
 /**
+ * 标准化所有 injections 基于对象格式
  * Normalize all injections into Object-based format
  */
 function normalizeInject(options: Object, vm: ?Component) {
   const inject = options.inject;
   if (!inject) return;
+
+  // object
   const normalized = (options.inject = {});
+
+  // array
+  // [ 'a', 'b' ] => { a: { from: 'a' }, b: { from: 'b' }  }
   if (Array.isArray(inject)) {
     for (let i = 0; i < inject.length; i++) {
       normalized[inject[i]] = { from: inject[i] };
     }
-  } else if (isPlainObject(inject)) {
+  }
+  // plain object
+  // { a: { pa: 'pa', pb: 'pb' }, b: 'parent' } => 
+  // { a: { from: 'a', pa: 'pa', pb: 'pb' }, b: { from: 'parent' } }
+  else if (isPlainObject(inject)) {
     for (const key in inject) {
       const val = inject[key];
       normalized[key] = isPlainObject(val)
         ? extend({ from: key }, val)
         : { from: val };
     }
-  } else if (process.env.NODE_ENV !== "production") {
+  }
+  // other
+  else if (process.env.NODE_ENV !== "production") {
     warn(
       `Invalid value for option "inject": expected an Array or an Object, ` +
       `but got ${toRawType(inject)}.`,
@@ -354,6 +383,7 @@ function normalizeInject(options: Object, vm: ?Component) {
 }
 
 /**
+ * directives  => 标准的基于对象的格式
  * Normalize raw function directives into object format.
  */
 function normalizeDirectives(options: Object) {
@@ -391,22 +421,34 @@ export function mergeOptions(
     checkComponents(child);
   }
 
+  // 如果 child 是构造函数，读取构造函数的 options
   if (typeof child === "function") {
     child = child.options;
   }
 
+  // 将子组件构造函数的 props、injections、directives 标准化处理
+  // options.props = { a: { type: Number }, b: { type: null } }
   normalizeProps(child, vm);
+  // options.injections = { a: { from: '' }, b: { from: '', ...extra } }
   normalizeInject(child, vm);
+  // options = { bind: () => void, update: () => void }
   normalizeDirectives(child);
 
+  // 处理 extends、mixins 属性
+  // 只处理原始 options 对象，而不是其他 mergeOptions 处理过的结果
+  // 只合并具有 _base 的 options
+  // 没有 _base 属性，options 是未处理过的对象，可以处理
   // Apply extends and mixins on the child options,
   // but only if it is a raw options object that isn't
   // the result of another mergeOptions call.
   // Only merged options has the _base property.
   if (!child._base) {
+    // extends 属性
+    // 子元素的 extends 属性合并到 parent options 中
     if (child.extends) {
       parent = mergeOptions(parent, child.extends, vm);
     }
+    // 子元素 mixins 中的元素分别合并到 parent 中
     if (child.mixins) {
       for (let i = 0, l = child.mixins.length; i < l; i++) {
         parent = mergeOptions(parent, child.mixins[i], vm);
@@ -416,9 +458,13 @@ export function mergeOptions(
 
   const options = {};
   let key;
+
+  // 父元素的所有属性合并到新对象
   for (key in parent) {
     mergeField(key);
   }
+
+  // 子元素中父元素没有的合并到新对象
   for (key in child) {
     if (!hasOwn(parent, key)) {
       mergeField(key);
@@ -428,6 +474,8 @@ export function mergeOptions(
     const strat = strats[key] || defaultStrat;
     options[key] = strat(parent[key], child[key], vm, key);
   }
+
+  // 返回新对象
   return options;
 }
 
