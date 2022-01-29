@@ -4,8 +4,14 @@ import { ASSET_TYPES } from "shared/constants";
 import { defineComputed, proxy } from "../instance/state";
 import { extend, mergeOptions, validateComponentName } from "../util/index";
 
-export function initExtend(Vue: GlobalAPI) {
+/**
+ * @param { GlobalAPI } Vue
+ */
+export function initExtend(Vue) {
   /**
+   * 每个实例构造函数，包括Vue在内，都有一个唯一的cid属性。
+   * 这让我们创建包装的 `child constructor`，便于原型继承和缓存他们。
+   *
    * Each instance constructor, including Vue, has a unique
    * cid. This enables us to create wrapped "child
    * constructors" for prototypal inheritance and cache them.
@@ -13,18 +19,23 @@ export function initExtend(Vue: GlobalAPI) {
   Vue.cid = 0;
   let cid = 1;
 
-  // 创建 Vue 子类
-  Vue.extend = function (extendOptions: Object): Function {
-    // 默认空对象
+  /**
+   * @description 创建Vue子类
+   * @param { Object } extendOptions
+   * @returns { Function }
+   */
+  Vue.extend = function (extendOptions) {
+    // 构造函数参数默认是空对象
     extendOptions = extendOptions || {};
 
-    // 记录父类，调用哪个构造函数上的extend方法，this就指向哪个构造函数
+    // 缓存父类，通过哪个构造函数执行extend方法，this就指向哪个构造函数
     const Super = this;
 
-    // 记录超类的 cid 属性
+    // 缓存父类的唯一cid
     const SuperId = Super.cid;
 
-    // 通过超类的cid就超类
+    // 这个缓存有什么作用？？？
+    // 什么场景会触发缓存？？？
     const cachedCtors = extendOptions._Ctor || (extendOptions._Ctor = {});
     if (cachedCtors[SuperId]) {
       return cachedCtors[SuperId];
