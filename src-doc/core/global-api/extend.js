@@ -55,6 +55,8 @@ export function initExtend(Vue) {
     Sub.options = mergeOptions(Super.options, extendOptions);
     Sub["super"] = Super;
 
+    // 对 props 和 computed 属性，我们在扩展的时候在Vue实例上设置getters代理，
+    // 这意味着 Object.defineProperty 为每个创建的实例执行
     // For props and computed properties, we define the proxy getters on
     // the Vue instances at extension time, on the extended prototype. This
     // avoids Object.defineProperty calls for each instance created.
@@ -96,6 +98,7 @@ export function initExtend(Vue) {
 function initProps(Comp) {
   const props = Comp.options.props;
   for (const key in props) {
+    // Comp.key = Comp.prototype._props.key
     proxy(Comp.prototype, `_props`, key);
   }
 }

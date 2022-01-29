@@ -36,10 +36,18 @@ const sharedPropertyDefinition = {
   set: noop,
 };
 
-// target - 对象
-// sourceKey 原始对象key
-// 代理读取的 key
-export function proxy(target: Object, sourceKey: string, key: string) {
+/**
+ * @description 设置属性代理
+ * @param { Object } target
+ * @param { String } sourceKey
+ * @param { String } key
+ * @example
+ * const vm = { _props: { username: "David" } }
+ * proxy(vm, "_props", "username")
+ * then
+ * vm.username ==> vm._props.username
+ */
+export function proxy(target, sourceKey, key) {
   sharedPropertyDefinition.get = function proxyGetter() {
     return this[sourceKey][key];
   };
@@ -95,9 +103,9 @@ function initProps(vm: Component, propsOptions: Object) {
         if (!isRoot && !isUpdatingChildComponent) {
           warn(
             `Avoid mutating a prop directly since the value will be ` +
-            `overwritten whenever the parent component re-renders. ` +
-            `Instead, use a data or computed property based on the prop's ` +
-            `value. Prop being mutated: "${key}"`,
+              `overwritten whenever the parent component re-renders. ` +
+              `Instead, use a data or computed property based on the prop's ` +
+              `value. Prop being mutated: "${key}"`,
             vm
           );
         }
@@ -128,7 +136,7 @@ function initData(vm: Component) {
     process.env.NODE_ENV !== "production" &&
       warn(
         "data functions should return an object:\n" +
-        "https://vuejs.org/v2/guide/components.html#data-Must-Be-a-Function",
+          "https://vuejs.org/v2/guide/components.html#data-Must-Be-a-Function",
         vm
       );
   }
@@ -154,7 +162,7 @@ function initData(vm: Component) {
       process.env.NODE_ENV !== "production" &&
         warn(
           `The data property "${key}" is already declared as a prop. ` +
-          `Use prop default value instead.`,
+            `Use prop default value instead.`,
           vm
         );
     }
@@ -230,18 +238,25 @@ function initComputed(vm: Component, computed: Object) {
   }
 }
 
-export function defineComputed(
-  target: any,
-  key: string,
-  userDef: Object | Function
-) {
+/**
+ * @description 设置 computed 代理
+ * @param { any } target
+ * @param { String } key
+ * @param { Object | Function } userDef
+ */
+export function defineComputed(target, key, userDef) {
+  // 服务端渲染不缓存
   const shouldCache = !isServerRendering();
+
+  // computed 值是函数
   if (typeof userDef === "function") {
     sharedPropertyDefinition.get = shouldCache
       ? createComputedGetter(key)
       : createGetterInvoker(userDef);
     sharedPropertyDefinition.set = noop;
-  } else {
+  }
+  // computed 值不是函数
+  else {
     sharedPropertyDefinition.get = userDef.get
       ? shouldCache && userDef.cache !== false
         ? createComputedGetter(key)
@@ -263,6 +278,10 @@ export function defineComputed(
   Object.defineProperty(target, key, sharedPropertyDefinition);
 }
 
+/**
+ * @param { String } key
+ * @returns { Function }
+ */
 function createComputedGetter(key) {
   return function computedGetter() {
     const watcher = this._computedWatchers && this._computedWatchers[key];
@@ -278,6 +297,10 @@ function createComputedGetter(key) {
   };
 }
 
+/**
+ * @param { Function } fn
+ * @returns
+ */
 function createGetterInvoker(fn) {
   return function computedGetter() {
     return fn.call(this, this);
@@ -291,9 +314,9 @@ function initMethods(vm: Component, methods: Object) {
       if (typeof methods[key] !== "function") {
         warn(
           `Method "${key}" has type "${typeof methods[
-          key
+            key
           ]}" in the component definition. ` +
-          `Did you reference the function correctly?`,
+            `Did you reference the function correctly?`,
           vm
         );
       }
@@ -303,7 +326,7 @@ function initMethods(vm: Component, methods: Object) {
       if (key in vm && isReserved(key)) {
         warn(
           `Method "${key}" conflicts with an existing Vue instance method. ` +
-          `Avoid defining component methods that start with _ or $.`
+            `Avoid defining component methods that start with _ or $.`
         );
       }
     }
@@ -357,7 +380,7 @@ export function stateMixin(Vue: Class<Component>) {
     dataDef.set = function () {
       warn(
         "Avoid replacing instance root $data. " +
-        "Use nested data properties instead.",
+          "Use nested data properties instead.",
         this
       );
     };
