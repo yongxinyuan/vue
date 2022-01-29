@@ -189,25 +189,28 @@ LIFECYCLE_HOOKS.forEach((hook) => {
   strats[hook] = mergeHook;
 });
 
-/**
- * Assets
- *
- * When a vm is present (instance creation), we need to do
- * a three-way merge between constructor options, instance
- * options and parent options.
- */
-function mergeAssets(
-  parentVal: ?Object,
-  childVal: ?Object,
-  vm?: Component,
-  key: string
-): Object {
+// components directives filters
+// 如果已经创建 vm 实例，需要进行构造函数options、vm实例options、和parent options三方合并
+// @params { ?Object } parentVal
+// @params { ?Object } childVal
+// @params { ?Component } vm
+// @params { ?String } key
+// @return { Object }
+function mergeAssets(parentVal, childVal, vm, key) {
+  // 以 parent 为原型创建新对象
   const res = Object.create(parentVal || null);
+  // child !== undefined
+  //
   if (childVal) {
     process.env.NODE_ENV !== "production" &&
       assertObjectType(key, childVal, vm);
+
+    // merge child into res
     return extend(res, childVal);
-  } else {
+  }
+  // child === undefined
+  // return res
+  else {
     return res;
   }
 }
@@ -217,59 +220,73 @@ ASSET_TYPES.forEach(function (type) {
   strats[type + "s"] = mergeAssets;
 });
 
-/**
- * Watchers.
- *
- * Watchers hashes should not overwrite one
- * another, so we merge them as arrays.
- */
 // merge options.watch
-strats.watch = function (
-  parentVal: ?Object,
-  childVal: ?Object,
-  vm?: Component,
-  key: string
-): ?Object {
-  // work around Firefox's Object.prototype.watch...
+// 监听map不能覆盖，合并成数组
+// @params { ?Object } parentVal
+// @params { ?Object } childVal
+// @params { ?Component } vm
+// @params { ?String } key
+// @return { Object }
+strats.watch = function (parentVal, childVal, vm, key) {
+  // work around Firefox's Object.prototype.watch...?
+  // watch 是原生的 watch， 设置为 undefined，不知道哪个版本的？
   if (parentVal === nativeWatch) parentVal = undefined;
   if (childVal === nativeWatch) childVal = undefined;
   /* istanbul ignore if */
+
+  // childVal === undefined
+  // 返回 parent 为原型的新对象
   if (!childVal) return Object.create(parentVal || null);
+
   if (process.env.NODE_ENV !== "production") {
     assertObjectType(key, childVal, vm);
   }
+
+  // parentVal === undefined
+  // return childVal
   if (!parentVal) return childVal;
   const ret = {};
+
+  // extend parentVal
   extend(ret, parentVal);
+
+  // childVal 合并到 ret
   for (const key in childVal) {
+    // parent value
     let parent = ret[key];
+
+    // child value
     const child = childVal[key];
+
+    // parent !== undefined and parent is not Array
+    // translate to an array
     if (parent && !Array.isArray(parent)) {
       parent = [parent];
     }
-    ret[key] = parent
-      ? parent.concat(child)
-      : Array.isArray(child)
-      ? child
-      : [child];
+    ret[key] =
+      // parent !== undefined
+      // parent concat child
+      // parent === undefined
+      // child is array
+      // return child
+      // child is not array
+      // return [child]
+      parent ? parent.concat(child) : Array.isArray(child) ? child : [child];
   }
   return ret;
 };
 
-/**
- * Other object hashes.
- */
 // merge options.methods/inject/computed
+// @params { ?Object } parentVal
+// @params { ?Object } childVal
+// @params { ?Component } vm
+// @params { ?String } key
+// @return { Object }
 strats.props =
   strats.methods =
   strats.inject =
   strats.computed =
-    function (
-      parentVal: ?Object,
-      childVal: ?Object,
-      vm?: Component,
-      key: string
-    ): ?Object {
+    function (parentVal, childVal, vm, key) {
       if (childVal && process.env.NODE_ENV !== "production") {
         assertObjectType(key, childVal, vm);
       }
