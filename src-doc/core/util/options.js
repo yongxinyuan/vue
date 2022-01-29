@@ -148,13 +148,21 @@ strats.data = function (
   return mergeDataOrFn(parentVal, childVal, vm);
 };
 
-/**
- * Hooks and props are merged as arrays.
- */
-function mergeHook(
-  parentVal: ?Array<Function>,
-  childVal: ?Function | ?Array<Function>
-): ?Array<Function> {
+// hooks 和 props 合并成数组
+// @params { ?Array<Function> } parentVal
+// @params { ?Function | ?Array<Function> } childVal
+// @return { ?Array<Function> }
+function mergeHook(parentVal, childVal) {
+  // 1、child !== undefined
+  // 1.1、parent !== undefined
+  // return parent.concat(child)
+  // 1.2、parent === undefined
+  // 1.2.1、child is Array
+  // return child
+  // 1.2.2、child isnot Array
+  // return [child]
+  // 2、child === undefined
+  // return parentVal
   const res = childVal
     ? parentVal
       ? parentVal.concat(childVal)
@@ -165,6 +173,7 @@ function mergeHook(
   return res ? dedupeHooks(res) : res;
 }
 
+// 去重？
 function dedupeHooks(hooks) {
   const res = [];
   for (let i = 0; i < hooks.length; i++) {
