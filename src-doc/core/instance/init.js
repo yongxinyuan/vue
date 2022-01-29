@@ -12,11 +12,17 @@ import { extend, mergeOptions, formatComponentName } from "../util/index";
 
 let uid = 0;
 
-export function initMixin(Vue: Class<Component>) {
-  // 初始化函数，创建vue实例
-  Vue.prototype._init = function (options?: Object) {
-    const vm: Component = this;
-    // a uid
+/**
+ * @param { Class<Component> } Vue
+ */
+export function initMixin(Vue) {
+  /**
+   * @param { ?Object } options
+   */
+  Vue.prototype._init = function (options) {
+    const vm = this;
+
+    // component instance unique id
     vm._uid = uid++;
 
     let startTag, endTag;
@@ -27,11 +33,12 @@ export function initMixin(Vue: Class<Component>) {
       mark(startTag);
     }
 
-    // 一个避免被观察到的标志
+    // 标记这是一个Vue组件实例，常用于避免创建可观察对象
     vm._isVue = true;
 
     // merge options
     if (options && options._isComponent) {
+      // 优化内部组件实例化，因为动态选项合并非常慢，而且内部组件选项都不需要特殊处理。
       // optimize internal component instantiation
       // since dynamic options merging is pretty slow, and none of the
       // internal component options needs special treatment.
@@ -80,10 +87,12 @@ export function initMixin(Vue: Class<Component>) {
   };
 }
 
-export function initInternalComponent(
-  vm: Component,
-  options: InternalComponentOptions
-) {
+/**
+ * @description 初始化内部组件
+ * @param { Component } vm
+ * @param { InternalComponentOptions } options
+ */
+export function initInternalComponent(vm, options) {
   const opts = (vm.$options = Object.create(vm.constructor.options));
   // doing this because it's faster than dynamic enumeration.
   const parentVnode = options._parentVnode;
