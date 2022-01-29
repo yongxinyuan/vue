@@ -18,11 +18,7 @@ import {
   isPlainObject,
 } from "shared/util";
 
-/**
- * Option overwriting strategies are functions that handle
- * how to merge a parent option value and a child option
- * value into the final value.
- */
+// 默认覆盖策略
 const strats = config.optionMergeStrategies;
 
 /**
@@ -33,31 +29,42 @@ if (process.env.NODE_ENV !== "production") {
     if (!vm) {
       warn(
         `option "${key}" can only be used during instance ` +
-        "creation with the `new` keyword."
+          "creation with the `new` keyword."
       );
     }
     return defaultStrat(parent, child);
   };
 }
 
-/**
- * Helper that recursively merges two data objects together.
- */
+// 两个 data 实例，也就是对象是怎么合并的
 function mergeData(to: Object, from: ?Object): Object {
   if (!from) return to;
   let key, toVal, fromVal;
 
+  // 要合并的属性 keys
   const keys = hasSymbol ? Reflect.ownKeys(from) : Object.keys(from);
 
   for (let i = 0; i < keys.length; i++) {
+    // key
     key = keys[i];
+    // 可观察对象的 __ob__ 属性跳过
     // in case the object is already observed...
     if (key === "__ob__") continue;
+
+    // 分别取值
     toVal = to[key];
     fromVal = from[key];
+
+    // to 没有这个属性
+    // 响应式的方式设置到 from 上
     if (!hasOwn(to, key)) {
       set(to, key, fromVal);
-    } else if (
+    }
+    // to 有这个属性
+    // 两个属性不一样
+    // 都是普通对象
+    // 递归合并
+    else if (
       toVal !== fromVal &&
       isPlainObject(toVal) &&
       isPlainObject(fromVal)
@@ -68,14 +75,13 @@ function mergeData(to: Object, from: ?Object): Object {
   return to;
 }
 
-/**
- * Data
- */
+// merge options.data
 export function mergeDataOrFn(
   parentVal: any,
   childVal: any,
   vm?: Component
 ): ?Function {
+  // 组件工厂属性合并
   if (!vm) {
     // in a Vue.extend merge, both should be functions
     if (!childVal) {
@@ -84,6 +90,7 @@ export function mergeDataOrFn(
     if (!parentVal) {
       return childVal;
     }
+    // 返回一个 data 的工厂函数，执行的时候才创建 data 实例，执行合并
     // when parentVal & childVal are both present,
     // we need to return a function that returns the
     // merged result of both functions... no need to
@@ -95,7 +102,9 @@ export function mergeDataOrFn(
         typeof parentVal === "function" ? parentVal.call(this, this) : parentVal
       );
     };
-  } else {
+  }
+  // 组件实例属性合并
+  else {
     return function mergedInstanceDataFn() {
       // instance merge
       const instanceData =
@@ -111,18 +120,23 @@ export function mergeDataOrFn(
   }
 }
 
+// merge options.data
+// merge 完返回一个 data 工厂函数
 strats.data = function (
   parentVal: any,
   childVal: any,
   vm?: Component
 ): ?Function {
+  // 没有vm实例
   if (!vm) {
+    // constructor.options.data 必须是函数
+    // 不是，不处理，返回 parent value
     if (childVal && typeof childVal !== "function") {
       process.env.NODE_ENV !== "production" &&
         warn(
           'The "data" option should be a function ' +
-          "that returns a per-instance value in component " +
-          "definitions.",
+            "that returns a per-instance value in component " +
+            "definitions.",
           vm
         );
 
@@ -145,8 +159,8 @@ function mergeHook(
     ? parentVal
       ? parentVal.concat(childVal)
       : Array.isArray(childVal)
-        ? childVal
-        : [childVal]
+      ? childVal
+      : [childVal]
     : parentVal;
   return res ? dedupeHooks(res) : res;
 }
@@ -161,6 +175,7 @@ function dedupeHooks(hooks) {
   return res;
 }
 
+// merge options.hooks
 LIFECYCLE_HOOKS.forEach((hook) => {
   strats[hook] = mergeHook;
 });
@@ -188,6 +203,7 @@ function mergeAssets(
   }
 }
 
+// merge options.components/directives/filters
 ASSET_TYPES.forEach(function (type) {
   strats[type + "s"] = mergeAssets;
 });
@@ -198,6 +214,7 @@ ASSET_TYPES.forEach(function (type) {
  * Watchers hashes should not overwrite one
  * another, so we merge them as arrays.
  */
+// merge options.watch
 strats.watch = function (
   parentVal: ?Object,
   childVal: ?Object,
@@ -224,8 +241,8 @@ strats.watch = function (
     ret[key] = parent
       ? parent.concat(child)
       : Array.isArray(child)
-        ? child
-        : [child];
+      ? child
+      : [child];
   }
   return ret;
 };
@@ -233,25 +250,28 @@ strats.watch = function (
 /**
  * Other object hashes.
  */
+// merge options.methods/inject/computed
 strats.props =
   strats.methods =
   strats.inject =
   strats.computed =
-  function (
-    parentVal: ?Object,
-    childVal: ?Object,
-    vm?: Component,
-    key: string
-  ): ?Object {
-    if (childVal && process.env.NODE_ENV !== "production") {
-      assertObjectType(key, childVal, vm);
-    }
-    if (!parentVal) return childVal;
-    const ret = Object.create(null);
-    extend(ret, parentVal);
-    if (childVal) extend(ret, childVal);
-    return ret;
-  };
+    function (
+      parentVal: ?Object,
+      childVal: ?Object,
+      vm?: Component,
+      key: string
+    ): ?Object {
+      if (childVal && process.env.NODE_ENV !== "production") {
+        assertObjectType(key, childVal, vm);
+      }
+      if (!parentVal) return childVal;
+      const ret = Object.create(null);
+      extend(ret, parentVal);
+      if (childVal) extend(ret, childVal);
+      return ret;
+    };
+
+// merge options.provide
 strats.provide = mergeDataOrFn;
 
 /**
@@ -276,25 +296,21 @@ export function validateComponentName(name: string) {
   ) {
     warn(
       'Invalid component name: "' +
-      name +
-      '". Component names ' +
-      "should conform to valid custom element name in html5 specification."
+        name +
+        '". Component names ' +
+        "should conform to valid custom element name in html5 specification."
     );
   }
   if (isBuiltInTag(name) || config.isReservedTag(name)) {
     warn(
       "Do not use built-in or reserved HTML elements as component " +
-      "id: " +
-      name
+        "id: " +
+        name
     );
   }
 }
 
-/**
- * 确保所有的 props 配置都是标准的基于对象的格式
- * Ensure all props option syntax are normalized into the
- * Object-based format.
- */
+// 标准化 props 基于对象格式
 function normalizeProps(options: Object, vm: ?Component) {
   // 配置的 props
   const props = options.props;
@@ -336,17 +352,14 @@ function normalizeProps(options: Object, vm: ?Component) {
   else if (process.env.NODE_ENV !== "production") {
     warn(
       `Invalid value for option "props": expected an Array or an Object, ` +
-      `but got ${toRawType(props)}.`,
+        `but got ${toRawType(props)}.`,
       vm
     );
   }
   options.props = res;
 }
 
-/**
- * 标准化所有 injections 基于对象格式
- * Normalize all injections into Object-based format
- */
+// 标准化所有 injections 基于对象格式
 function normalizeInject(options: Object, vm: ?Component) {
   const inject = options.inject;
   if (!inject) return;
@@ -362,7 +375,7 @@ function normalizeInject(options: Object, vm: ?Component) {
     }
   }
   // plain object
-  // { a: { pa: 'pa', pb: 'pb' }, b: 'parent' } => 
+  // { a: { pa: 'pa', pb: 'pb' }, b: 'parent' } =>
   // { a: { from: 'a', pa: 'pa', pb: 'pb' }, b: { from: 'parent' } }
   else if (isPlainObject(inject)) {
     for (const key in inject) {
@@ -376,16 +389,13 @@ function normalizeInject(options: Object, vm: ?Component) {
   else if (process.env.NODE_ENV !== "production") {
     warn(
       `Invalid value for option "inject": expected an Array or an Object, ` +
-      `but got ${toRawType(inject)}.`,
+        `but got ${toRawType(inject)}.`,
       vm
     );
   }
 }
 
-/**
- * directives  => 标准的基于对象的格式
- * Normalize raw function directives into object format.
- */
+// 标准化 directive 基于对象格式
 function normalizeDirectives(options: Object) {
   const dirs = options.directives;
   if (dirs) {
@@ -402,7 +412,7 @@ function assertObjectType(name: string, value: any, vm: ?Component) {
   if (!isPlainObject(value)) {
     warn(
       `Invalid value for option "${name}": expected an Object, ` +
-      `but got ${toRawType(value)}.`,
+        `but got ${toRawType(value)}.`,
       vm
     );
   }
