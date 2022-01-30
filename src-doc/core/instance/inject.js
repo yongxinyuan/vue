@@ -5,7 +5,6 @@ import { warn, hasSymbol } from "../util/index";
 import { defineReactive, toggleObserving } from "../observer/index";
 
 /**
- * 
  * @param { Component } vm 
  */
 export function initProvide(vm: ) {
@@ -19,8 +18,13 @@ export function initProvide(vm: ) {
  * @param { Component } vm
  */
 export function initInjections(vm) {
+
+  // 解析所有的 inject
   const result = resolveInject(vm.$options.inject, vm);
+
   if (result) {
+    // 响应式 inject
+    // 定义期间不收集依赖
     toggleObserving(false);
     Object.keys(result).forEach((key) => {
       /* istanbul ignore else */
@@ -28,8 +32,8 @@ export function initInjections(vm) {
         defineReactive(vm, key, result[key], () => {
           warn(
             `Avoid mutating an injected value directly since the changes will be ` +
-              `overwritten whenever the provided component re-renders. ` +
-              `injection being mutated: "${key}"`,
+            `overwritten whenever the provided component re-renders. ` +
+            `injection being mutated: "${key}"`,
             vm
           );
         });
@@ -48,7 +52,7 @@ export function initInjections(vm) {
  */
 export function resolveInject(inject, vm) {
   if (inject) {
-    // inject is :any because flow is not smart enough to figure out cached
+    // 记录结果
     const result = Object.create(null);
     const keys = hasSymbol ? Reflect.ownKeys(inject) : Object.keys(inject);
 
@@ -58,6 +62,9 @@ export function resolveInject(inject, vm) {
       if (key === "__ob__") continue;
       const provideKey = inject[key].from;
       let source = vm;
+
+      // 向上查找 _provided
+      // 记录到 result
       while (source) {
         if (source._provided && hasOwn(source._provided, provideKey)) {
           result[key] = source._provided[provideKey];
@@ -65,6 +72,8 @@ export function resolveInject(inject, vm) {
         }
         source = source.$parent;
       }
+
+      // 默认 inject
       if (!source) {
         if ("default" in inject[key]) {
           const provideDefault = inject[key].default;
