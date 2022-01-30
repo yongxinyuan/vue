@@ -29,7 +29,10 @@ export function setActiveInstance(vm: Component) {
   };
 }
 
-export function initLifecycle(vm: Component) {
+/**
+ * @param { Component } vm
+ */
+export function initLifecycle(vm) {
   const options = vm.$options;
 
   // 定位到第一个实体父类
@@ -157,8 +160,8 @@ export function mountComponent(
       ) {
         warn(
           "You are using the runtime-only build of Vue where the template " +
-          "compiler is not available. Either pre-compile the templates into " +
-          "render functions, or use the compiler-included build.",
+            "compiler is not available. Either pre-compile the templates into " +
+            "render functions, or use the compiler-included build.",
           vm
         );
       } else {
@@ -346,7 +349,11 @@ export function deactivateChildComponent(vm: Component, direct?: boolean) {
   }
 }
 
-export function callHook(vm: Component, hook: string) {
+/**
+ * @param { Component } vm
+ * @param { String } hook
+ */
+export function callHook(vm, hook) {
   // #7573 disable dep collection when invoking lifecycle hooks
   pushTarget();
   const handlers = vm.$options[hook];

@@ -9,7 +9,10 @@ import {
 } from "../util/index";
 import { updateListeners } from "../vdom/helpers/index";
 
-export function initEvents(vm: Component) {
+/**
+ * @param { Component } vm
+ */
+export function initEvents(vm) {
   vm._events = Object.create(null);
   vm._hasHookEvent = false;
 
@@ -21,7 +24,7 @@ export function initEvents(vm: Component) {
   }
 }
 
-let target: any;
+let target;
 
 function add(event, fn) {
   target.$on(event, fn);
@@ -41,14 +44,12 @@ function createOnceHandler(event, fn) {
   };
 }
 
-// 更新组建监听器
-// 为什么要设置target
-// 包装
-export function updateComponentListeners(
-  vm: Component,
-  listeners: Object,
-  oldListeners: ?Object
-) {
+/**
+ * @param { Component } vm
+ * @param { Object } listeners
+ * @param { ?Object } oldListeners
+ */
+export function updateComponentListeners(vm, listeners, oldListeners) {
   target = vm;
   updateListeners(
     listeners,

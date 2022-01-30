@@ -49,14 +49,15 @@ export function createFnInvoker(
   return invoker;
 }
 
-export function updateListeners(
-  on: Object,
-  oldOn: Object,
-  add: Function,
-  remove: Function,
-  createOnceHandler: Function,
-  vm: Component
-) {
+/**
+ * @param { Object } on
+ * @param { Object } oldOn
+ * @param { Function } add
+ * @param { Function } remove
+ * @param { Function } createOnceHandler
+ * @param { Component } vm
+ */
+export function updateListeners(on, oldOn, add, remove, createOnceHandler, vm) {
   let name, def, cur, old, event;
 
   // 遍历新的监听器

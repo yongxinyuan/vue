@@ -22,7 +22,7 @@ export function initMixin(Vue) {
   Vue.prototype._init = function (options) {
     const vm = this;
 
-    // component instance unique id
+    // 组件实例唯一id
     vm._uid = uid++;
 
     let startTag, endTag;
@@ -36,7 +36,7 @@ export function initMixin(Vue) {
     // 标记这是一个Vue组件实例，常用于避免创建可观察对象
     vm._isVue = true;
 
-    // merge options
+    // 合并所有 options
     if (options && options._isComponent) {
       // 优化内部组件实例化，因为动态选项合并非常慢，而且内部组件选项都不需要特殊处理。
       // optimize internal component instantiation
@@ -111,14 +111,17 @@ export function initInternalComponent(vm, options) {
   }
 }
 
-// 获取构造函数的参数
-// 在 /core/global-api 中设置
-// 通过 Vue.extend() 扩展 Vue时，将超类挂载到子类的 super 属性上
-export function resolveConstructorOptions(Ctor: Class<Component>) {
-  // 读取构造函数的 options 属性
+/**
+ * @description
+ * 解析构造函数参数，递归向上查找，向下合并，super 属性在 Vue.extend() 函数中添加
+ *
+ * @param { Class<Component> } Ctor
+ * @returns { ?Object }
+ * @link src/core/global-api
+ */
+export function resolveConstructorOptions(Ctor) {
   let options = Ctor.options;
 
-  // 如果有超类，递归获取
   if (Ctor.super) {
     // 获取父类上挂载的options属性
     const superOptions = resolveConstructorOptions(Ctor.super);
@@ -130,14 +133,23 @@ export function resolveConstructorOptions(Ctor: Class<Component>) {
       // super option changed,
       // need to resolve new options.
       Ctor.superOptions = superOptions;
+
+      // 检查是否有任何后期修改/附加的选项
       // check if there are any late-modified/attached options (#4976)
       const modifiedOptions = resolveModifiedOptions(Ctor);
+
+      // 发生变化的配置扩展到基础扩展配置中
       // update base extend options
       if (modifiedOptions) {
         extend(Ctor.extendOptions, modifiedOptions);
       }
+
+      // 基础扩展配置合并到父类中，生成新的options，
+      // 1、更新到构造函数 options 属性
+      // 2、替换成最新的 options
       options = Ctor.options = mergeOptions(superOptions, Ctor.extendOptions);
 
+      // 注册到当前组件
       if (options.name) {
         options.components[options.name] = Ctor;
       }
@@ -146,7 +158,11 @@ export function resolveConstructorOptions(Ctor: Class<Component>) {
   return options;
 }
 
-function resolveModifiedOptions(Ctor: Class<Component>): ?Object {
+/**
+ * @param { Class<Component> } Ctor
+ * @returns { ?Object }
+ */
+function resolveModifiedOptions(Ctor) {
   let modified;
   const latest = Ctor.options;
   const sealed = Ctor.sealedOptions;
