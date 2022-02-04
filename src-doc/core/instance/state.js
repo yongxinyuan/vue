@@ -57,7 +57,11 @@ export function proxy(target, sourceKey, key) {
   Object.defineProperty(target, key, sharedPropertyDefinition);
 }
 
-export function initState(vm: Component) {
+/**
+ * @description 初始化状态
+ * @param { Component } vm 
+ */
+export function initState(vm) {
   vm._watchers = [];
   const opts = vm.$options;
   if (opts.props) initProps(vm, opts.props);
@@ -73,7 +77,12 @@ export function initState(vm: Component) {
   }
 }
 
-function initProps(vm: Component, propsOptions: Object) {
+/**
+ * @description 初始化 props
+ * @param { Component } vm 
+ * @param { Object } propsOptions 
+ */
+function initProps(vm, propsOptions) {
   const propsData = vm.$options.propsData || {};
   const props = (vm._props = {});
   // cache prop keys so that future props updates can iterate using Array

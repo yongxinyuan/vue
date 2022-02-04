@@ -36,7 +36,9 @@ export function initMixin(Vue) {
     // 标记这是一个Vue组件实例，常用于避免创建可观察对象
     vm._isVue = true;
 
-    // 合并所有 options
+    // 我们可以查看什么时候会带有 _isComponent 这个属性
+    // 为 vnode 实例化组件的时候附带这个标识，来告诉 _init 函数，我们是内置组件
+    // 不需要消耗大量时间动态合并。
     if (options && options._isComponent) {
       // 优化内部组件实例化，因为动态选项合并非常慢，而且内部组件选项都不需要特殊处理。
       // optimize internal component instantiation
@@ -69,6 +71,8 @@ export function initMixin(Vue) {
     // 初始化渲染器
     initRender(vm);
     callHook(vm, "beforeCreate");
+
+    // 注入所有 inject
     initInjections(vm); // resolve injections before data/props
     initState(vm);
     initProvide(vm); // resolve provide after data/props
@@ -93,8 +97,10 @@ export function initMixin(Vue) {
  * @param { InternalComponentOptions } options
  */
 export function initInternalComponent(vm, options) {
+  // 以组件工厂 options 为原型创建一个 options 对象，挂载到组件实例 $options 上
   const opts = (vm.$options = Object.create(vm.constructor.options));
-  // doing this because it's faster than dynamic enumeration.
+
+  // 这样做是因为比动态枚举属性更快
   const parentVnode = options._parentVnode;
   opts.parent = options.parent;
   opts._parentVnode = parentVnode;
