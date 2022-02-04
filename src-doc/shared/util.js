@@ -4,26 +4,26 @@ export const emptyObject = Object.freeze({});
 
 // These helpers produce better VM code in JS engines due to their
 // explicitness and function inlining.
-export function isUndef(v: any): boolean %checks {
+export function isUndef(v: any): boolean % checks {
   return v === undefined || v === null;
 }
 
-export function isDef(v: any): boolean %checks {
+export function isDef(v: any): boolean % checks {
   return v !== undefined && v !== null;
 }
 
-export function isTrue(v: any): boolean %checks {
+export function isTrue(v: any): boolean % checks {
   return v === true;
 }
 
-export function isFalse(v: any): boolean %checks {
+export function isFalse(v: any): boolean % checks {
   return v === false;
 }
 
 /**
  * Check if value is primitive.
  */
-export function isPrimitive(value: any): boolean %checks {
+export function isPrimitive(value: any): boolean % checks {
   return (
     typeof value === "string" ||
     typeof value === "number" ||
@@ -38,7 +38,7 @@ export function isPrimitive(value: any): boolean %checks {
  * Objects from primitive values when we know the value
  * is a JSON-compliant type.
  */
-export function isObject(obj: mixed): boolean %checks {
+export function isObject(obj: mixed): boolean % checks {
   return obj !== null && typeof obj === "object";
 }
 
@@ -86,8 +86,8 @@ export function toString(val: any): string {
   return val == null
     ? ""
     : Array.isArray(val) || (isPlainObject(val) && val.toString === _toString)
-    ? JSON.stringify(val, null, 2)
-    : String(val);
+      ? JSON.stringify(val, null, 2)
+      : String(val);
 }
 
 /**
@@ -222,9 +222,12 @@ export function toArray(list: any, start?: number): Array<any> {
 }
 
 /**
- * Mix properties into target object.
+ * @description 将属性混合到目标对象中
+ * @param { Object } to 
+ * @param { ?Object } _from 
+ * @returns { Object }
  */
-export function extend(to: Object, _from: ?Object): Object {
+export function extend(to, _from) {
   for (const key in _from) {
     to[key] = _from[key];
   }
@@ -251,7 +254,7 @@ export function toObject(arr: Array<any>): Object {
  * Stubbing args to make Flow happy without leaving useless transpiled code
  * with ...rest (https://flow.org/blog/2017/05/07/Strict-Function-Call-Arity/).
  */
-export function noop(a?: any, b?: any, c?: any) {}
+export function noop(a?: any, b?: any, c?: any) { }
 
 /**
  * Always return false.
