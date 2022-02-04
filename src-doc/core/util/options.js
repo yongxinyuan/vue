@@ -29,7 +29,7 @@ if (process.env.NODE_ENV !== "production") {
     if (!vm) {
       warn(
         `option "${key}" can only be used during instance ` +
-          "creation with the `new` keyword."
+        "creation with the `new` keyword."
       );
     }
     return defaultStrat(parent, child);
@@ -75,12 +75,14 @@ function mergeData(to: Object, from: ?Object): Object {
   return to;
 }
 
-// merge options.data
-export function mergeDataOrFn(
-  parentVal: any,
-  childVal: any,
-  vm?: Component
-): ?Function {
+/**
+ * @description 合并数据或函数，延迟合并
+ * @param { any } parentVal 
+ * @param { any } childVal 
+ * @param { ?Component } vm 
+ * @returns { ?Function }
+ */
+export function mergeDataOrFn(parentVal, childVal, vm) {
   // 组件工厂属性合并
   if (!vm) {
     // in a Vue.extend merge, both should be functions
@@ -135,8 +137,8 @@ strats.data = function (
       process.env.NODE_ENV !== "production" &&
         warn(
           'The "data" option should be a function ' +
-            "that returns a per-instance value in component " +
-            "definitions.",
+          "that returns a per-instance value in component " +
+          "definitions.",
           vm
         );
 
@@ -167,8 +169,8 @@ function mergeHook(parentVal, childVal) {
     ? parentVal
       ? parentVal.concat(childVal)
       : Array.isArray(childVal)
-      ? childVal
-      : [childVal]
+        ? childVal
+        : [childVal]
     : parentVal;
   return res ? dedupeHooks(res) : res;
 }
@@ -286,24 +288,27 @@ strats.props =
   strats.methods =
   strats.inject =
   strats.computed =
-    function (parentVal, childVal, vm, key) {
-      if (childVal && process.env.NODE_ENV !== "production") {
-        assertObjectType(key, childVal, vm);
-      }
-      if (!parentVal) return childVal;
-      const ret = Object.create(null);
-      extend(ret, parentVal);
-      if (childVal) extend(ret, childVal);
-      return ret;
-    };
+  function (parentVal, childVal, vm, key) {
+    if (childVal && process.env.NODE_ENV !== "production") {
+      assertObjectType(key, childVal, vm);
+    }
+    if (!parentVal) return childVal;
+    const ret = Object.create(null);
+    extend(ret, parentVal);
+    if (childVal) extend(ret, childVal);
+    return ret;
+  };
 
 // merge options.provide
 strats.provide = mergeDataOrFn;
 
 /**
- * Default strategy.
+ * @description 默认合并策略，覆盖 undefined
+ * @param { any } parentVal 
+ * @param { any } childVal 
+ * @returns { any }
  */
-const defaultStrat = function (parentVal: any, childVal: any): any {
+const defaultStrat = function (parentVal, childVal) {
   return childVal === undefined ? parentVal : childVal;
 };
 
@@ -322,22 +327,27 @@ export function validateComponentName(name: string) {
   ) {
     warn(
       'Invalid component name: "' +
-        name +
-        '". Component names ' +
-        "should conform to valid custom element name in html5 specification."
+      name +
+      '". Component names ' +
+      "should conform to valid custom element name in html5 specification."
     );
   }
   if (isBuiltInTag(name) || config.isReservedTag(name)) {
     warn(
       "Do not use built-in or reserved HTML elements as component " +
-        "id: " +
-        name
+      "id: " +
+      name
     );
   }
 }
 
-// 标准化 props 基于对象格式
-function normalizeProps(options: Object, vm: ?Component) {
+/**
+ * @description 格式化 props 属性
+ * @param { Object } options 
+ * @param { ?Component } vm 
+ * @returns 
+ */
+function normalizeProps(options, vm) {
   // 配置的 props
   const props = options.props;
 
@@ -378,15 +388,20 @@ function normalizeProps(options: Object, vm: ?Component) {
   else if (process.env.NODE_ENV !== "production") {
     warn(
       `Invalid value for option "props": expected an Array or an Object, ` +
-        `but got ${toRawType(props)}.`,
+      `but got ${toRawType(props)}.`,
       vm
     );
   }
   options.props = res;
 }
 
-// 标准化所有 injections 基于对象格式
-function normalizeInject(options: Object, vm: ?Component) {
+/**
+ * @description 格式化 inject 属性
+ * @param { Object } options 
+ * @param { ?Component } vm 
+ * @returns 
+ */
+function normalizeInject(options, vm) {
   const inject = options.inject;
   if (!inject) return;
 
@@ -415,14 +430,17 @@ function normalizeInject(options: Object, vm: ?Component) {
   else if (process.env.NODE_ENV !== "production") {
     warn(
       `Invalid value for option "inject": expected an Array or an Object, ` +
-        `but got ${toRawType(inject)}.`,
+      `but got ${toRawType(inject)}.`,
       vm
     );
   }
 }
 
-// 标准化 directive 基于对象格式
-function normalizeDirectives(options: Object) {
+/**
+ * @description 格式化 directives 属性
+ * @param { Object } options 
+ */
+function normalizeDirectives(options) {
   const dirs = options.directives;
   if (dirs) {
     for (const key in dirs) {
@@ -434,30 +452,35 @@ function normalizeDirectives(options: Object) {
   }
 }
 
-function assertObjectType(name: string, value: any, vm: ?Component) {
+/**
+ * @description 断言对象类型，期望是普通对象
+ * @param { String } name 
+ * @param { any } value 
+ * @param { ?Component } vm 
+ */
+function assertObjectType(name, value, vm) {
   if (!isPlainObject(value)) {
     warn(
       `Invalid value for option "${name}": expected an Object, ` +
-        `but got ${toRawType(value)}.`,
+      `but got ${toRawType(value)}.`,
       vm
     );
   }
 }
 
 /**
- * Merge two option objects into a new one.
- * Core utility used in both instantiation and inheritance.
+ * @description 将两个 option 对象合并到一个新的对象，核心工具，同时应用于继承和实例化。
+ * @param { Object } parent 
+ * @param { Object } child 
+ * @param { ?Component } vm 
+ * @returns { Object }
  */
-export function mergeOptions(
-  parent: Object,
-  child: Object,
-  vm?: Component
-): Object {
+export function mergeOptions(parent, child, vm) {
   if (process.env.NODE_ENV !== "production") {
     checkComponents(child);
   }
 
-  // 如果 child 是构造函数，读取构造函数的 options
+  // 什么情况 child 是函数？
   if (typeof child === "function") {
     child = child.options;
   }
