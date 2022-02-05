@@ -92,19 +92,23 @@ const componentVNodeHooks = {
 
 const hooksToMerge = Object.keys(componentVNodeHooks);
 
-export function createComponent(
-  Ctor: Class<Component> | Function | Object | void,
-  data: ?VNodeData,
-  context: Component,
-  children: ?Array<VNode>,
-  tag?: string
-): VNode | Array<VNode> | void {
+/**
+ * @description 创建组件
+ * @param { Class<Component> | Function | Object | void } Ctor 
+ * @param { ?VNodeData } data 
+ * @param { Component } context 
+ * @param { ?Array<VNode> } children 
+ * @param { ?String } tag 
+ * @returns { VNode | Array<VNode> | void } 
+ */
+export function createComponent(Ctor, data, context, children, tag) {
   if (isUndef(Ctor)) {
     return;
   }
 
   const baseCtor = context.$options._base;
 
+  // 普通对象通过继承转换成构造函数
   // plain options object: turn it into a constructor
   if (isObject(Ctor)) {
     Ctor = baseCtor.extend(Ctor);

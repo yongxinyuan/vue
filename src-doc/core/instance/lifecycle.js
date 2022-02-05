@@ -66,8 +66,8 @@ export function lifecycleMixin(Vue: Class<Component>) {
    * @param { VNode } vnode 
    * @param { ?Boolean } hydrating 
    */
-  Vue.prototype._update = function (vnode: VNode, hydrating?: boolean) {
-    const vm: Component = this;
+  Vue.prototype._update = function (vnode, hydrating) {
+    const vm = this;
     const prevEl = vm.$el;
     const prevVnode = vm._vnode;
     const restoreActiveInstance = setActiveInstance(vm);

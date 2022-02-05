@@ -8,6 +8,10 @@
 
 /src/core/instance/render.js
 
-
-
 ### vm.\_update()
+
+/src/core/instance/lifecycle.js
+
+\_\_patch\_\_()
+
+/src/core/vdom/patch.js

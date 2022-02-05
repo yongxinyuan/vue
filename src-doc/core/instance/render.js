@@ -94,16 +94,23 @@ export function setCurrentRenderingInstance(vm: Component) {
   currentRenderingInstance = vm;
 }
 
-export function renderMixin(Vue: Class<Component>) {
+/**
+ * @description 混合 render 相关方法
+ * @param { Class<Component> } Vue 
+ */
+export function renderMixin(Vue) {
   // install runtime convenience helpers
   installRenderHelpers(Vue.prototype);
 
   Vue.prototype.$nextTick = function (fn: Function) {
     return nextTick(fn, this);
   };
-
+  /**
+   * @description 组件渲染函数，创建 VNode
+   * @returns { VNode }
+   */
   Vue.prototype._render = function (): VNode {
-    const vm: Component = this;
+    const vm = this;
     const { render, _parentVnode } = vm.$options;
 
     if (_parentVnode) {
