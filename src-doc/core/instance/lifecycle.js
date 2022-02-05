@@ -61,6 +61,11 @@ export function initLifecycle(vm) {
 }
 
 export function lifecycleMixin(Vue: Class<Component>) {
+  /**
+   * @description 更新组件实例
+   * @param { VNode } vnode 
+   * @param { ?Boolean } hydrating 
+   */
   Vue.prototype._update = function (vnode: VNode, hydrating?: boolean) {
     const vm: Component = this;
     const prevEl = vm.$el;
@@ -143,11 +148,14 @@ export function lifecycleMixin(Vue: Class<Component>) {
   };
 }
 
-export function mountComponent(
-  vm: Component,
-  el: ?Element,
-  hydrating?: boolean
-): Component {
+/**
+ * @description 挂载组件
+ * @param { Component } vm 
+ * @param { ?Element } el 
+ * @param { Boolean } hydrating 
+ * @returns { Component }
+ */
+export function mountComponent(vm, el, hydrating) {
   vm.$el = el;
   if (!vm.$options.render) {
     vm.$options.render = createEmptyVNode;

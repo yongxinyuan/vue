@@ -33,7 +33,7 @@ export function initRender(vm: Component) {
   // 渲染上下文
   const renderContext = parentVnode && parentVnode.context;
 
-  
+
   vm.$slots = resolveSlots(options._renderChildren, renderContext);
   vm.$scopedSlots = emptyObject;
   // bind the createElement fn to this instance
@@ -156,7 +156,7 @@ export function renderMixin(Vue: Class<Component>) {
       if (process.env.NODE_ENV !== "production" && Array.isArray(vnode)) {
         warn(
           "Multiple root nodes returned from render function. Render function " +
-            "should return a single root node.",
+          "should return a single root node.",
           vm
         );
       }
